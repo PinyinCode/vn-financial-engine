@@ -11,9 +11,16 @@ import re
 import time
 
 import pandas as pd
-from vnstock import Market
 
 logger = logging.getLogger(__name__)
+
+
+def _market():
+    try:
+        from vnstock import Market
+    except ImportError as exc:
+        raise RuntimeError('Cần cài extra market-data: pip install .[market-data]') from exc
+    return Market()
 
 
 class SSIPriceAdapter:
@@ -34,7 +41,7 @@ class SSIPriceAdapter:
     def fetch_history(self, symbol: str, start_date: str, end_date: str) -> pd.DataFrame | None:
         symbol = self._normalize_symbol(symbol)
         try:
-            df = Market().equity(symbol).ohlcv(
+            df = _market().equity(symbol).ohlcv(
                 start=start_date, end=end_date, interval="1D", source="ssi"
             )
             if df is None or df.empty:
