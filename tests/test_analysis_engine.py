@@ -13,3 +13,19 @@ def test_company_analysis_keeps_score_and_valuation_separate():
     assert result["scores"]["max_score"]==100
     assert result["valuation"]["fair_value"] is not None
     assert result["unit_profile"].startswith("VND_PER_SHARE")
+
+def test_ev_ebitda_primary_score_uses_enterprise_value_multiple():
+    result = analyze_company(
+        "HPG", "STEEL",
+        {"symbol": "HPG", "close": 27, "eps": 2, "pb": 1.5, "pe": 13},
+        {"roe": .14, "gross_margin": .2, "roic": .12,
+         "net_debt_ebitda": 1.5, "cfo_to_net_income": 1.1,
+         "profit_growth_yoy": .1, "inventory_days": 70},
+        {"ev_ebitda": 6.0},
+        {"technical_score": 65},
+        {"primary_multiple": "EV_EBITDA", "ebitda_vnd": 10_000_000_000_000,
+         "net_debt_vnd": 5_000_000_000_000, "diluted_shares": 1_000_000_000}
+    )
+    relative = result["valuation_score"]["components"]["relative_multiple"]["relative"]
+    assert relative is not None
+    assert relative > 0
