@@ -18,3 +18,43 @@ def test_bctc_unknown_period_is_not_used():
            "period_kind":"UNKNOWN","reporting_basis":"UNKNOWN"} for q in range(1,5)]
     result=extract_bctc_metrics(rows,"UNKNOWN")
     assert result["metrics"]["revenue_ttm"] is None
+
+
+def test_balance_sheet_ratios_require_verified_common_unit_and_period():
+    rows = []
+    for concept, value in (
+        ("BS_TOTAL_ASSETS", 100),
+        ("BS_OWNERS_EQUITY", 40),
+        ("BS_LIABILITIES", 60),
+    ):
+        rows.append({
+            "statement_type": "BALANCE_SHEET",
+            "id": concept,
+            "period": "2025-Q4",
+            "value": value,
+            "reporting_basis": "CONSOLIDATED",
+            "unit": "VND",
+        })
+    result = extract_bctc_metrics(rows, "CONSOLIDATED")
+    assert result["metrics"]["equity_to_assets"] == .4
+    assert result["metrics"]["debt_to_equity"] == 1.5
+    assert result["metric_status"]["debt_to_equity"] == "CALCULATED"
+
+
+def test_balance_sheet_rejects_unknown_or_mixed_units():
+    rows = [
+        {"statement_type": "BALANCE_SHEET", "id": "BS_TOTAL_ASSETS",
+         "period": "2025-Q4", "value": 100,
+         "reporting_basis": "CONSOLIDATED", "unit": "UNKNOWN"},
+        {"statement_type": "BALANCE_SHEET", "id": "BS_OWNERS_EQUITY",
+         "period": "2025-Q4", "value": 40,
+         "reporting_basis": "CONSOLIDATED", "unit": "VND"},
+        {"statement_type": "BALANCE_SHEET", "id": "BS_LIABILITIES",
+         "period": "2025-Q4", "value": 60,
+         "reporting_basis": "CONSOLIDATED", "unit": "VND"},
+    ]
+    result = extract_bctc_metrics(rows, "CONSOLIDATED")
+    assert result["metrics"]["total_assets"] is None
+    assert result["metrics"]["equity_to_assets"] is None
+    assert result["metrics"]["debt_to_equity"] is None
+    assert result["metric_status"]["total_assets"] == "MISSING_OR_UNVERIFIED_UNIT"
