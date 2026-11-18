@@ -53,3 +53,17 @@ def test_analysis_accepts_auditable_peer_group_result():
     )
     assert result["valuation_score"]["coverage"] == 1
     assert result["peer_comparison"]["multiples"]["pe"]["peer_count"] == 3
+
+def test_partial_technical_history_is_not_added_to_composite_score():
+    result = analyze_company(
+        "FPT", "TECHNOLOGY",
+        {"symbol":"FPT","close":120,"eps":8,"pb":3,"pe":15,"roe":18,
+         "roa":8,"profit_growth_yoy":20},
+        {"revenue_growth_yoy":.2,"gross_margin":.4,"roic":.15,
+         "fcf_margin":.1,"cfo_to_net_income":1.0},
+        {"pe":18},
+        {"technical_score":80,"technical_coverage":.5},
+        {"primary_multiple":"PE"},
+    )
+    assert result["scores"]["components"]["technical"]["score"] is None
+    assert result["scores"]["coverage"] < 1
