@@ -4,6 +4,8 @@ Keeps the existing source endpoint and canonical field mapping. The adapter
 returns raw normalized statement rows; scoring/valuation never runs here.
 """
 import logging
+import hashlib
+import json
 import re
 import time
 import requests
@@ -234,11 +236,18 @@ def _fetch_bctc_ssi(symbol: str):
                         if item_id == "IS_COST_OF_GOODS_SOLD" and value > 0:
                             value = -value
 
+                        source_hash = hashlib.sha256(
+                            json.dumps(row, sort_keys=True, ensure_ascii=False, default=str).encode("utf-8")
+                        ).hexdigest()
                         records.append({
+                            "symbol": symbol,
+                            "statement_type": report_name.upper(),
+                            "source_hash": source_hash,
                             "id": item_id,
                             "name": str(title),
                             "period": period,
                             "value": value,
+                            "raw_value": raw_value,
                             "unit": "VND",
                             "source_field": str(field_code),
                             "period_kind": "UNKNOWN",
