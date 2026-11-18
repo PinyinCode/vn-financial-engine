@@ -8,7 +8,7 @@ def test_capm_wacc_and_roic():
     ke=capm_cost_of_equity(.04,1.1,.06)
     assert round(ke,4)==.106
     wacc=weighted_average_cost_of_capital(600,400,ke,.08,.2)
-    assert round(wacc,4)==.0856
+    assert round(wacc,4)==.0892
     assert round(return_on_invested_capital(100,.2,500),4)==.16
 
 def test_fcff_formula():
