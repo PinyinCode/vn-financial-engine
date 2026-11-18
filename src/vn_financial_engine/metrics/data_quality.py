@@ -39,6 +39,7 @@ def validate_statement_data(
     valid_numeric = 0
     unknown_basis = 0
     unknown_period = 0
+    unknown_unit = 0
     invalid_period = 0
     by_identity: dict[tuple, list[dict]] = defaultdict(list)
     by_statement: dict[tuple, list[dict]] = defaultdict(list)
@@ -68,6 +69,9 @@ def validate_statement_data(
         basis = str(row.get("reporting_basis") or "UNKNOWN").upper()
         kind = str(row.get("period_kind") or "UNKNOWN").upper()
         period = row.get("period")
+        unit = str(row.get("unit") or "UNKNOWN").upper()
+        if unit in {"UNKNOWN", "NONE", "NULL", ""}:
+            unknown_unit += 1
         if basis not in VERIFIED_BASES:
             unknown_basis += 1
         if kind not in VERIFIED_PERIOD_KINDS:
@@ -169,6 +173,8 @@ def validate_statement_data(
         warnings.append({"code": "UNVERIFIED_REPORTING_BASIS", "row_count": unknown_basis})
     if unknown_period:
         warnings.append({"code": "UNVERIFIED_PERIOD_KIND", "row_count": unknown_period})
+    if unknown_unit:
+        warnings.append({"code": "UNVERIFIED_MONETARY_UNIT", "row_count": unknown_unit})
     if invalid_period:
         warnings.append({"code": "INVALID_PERIOD_COUNT", "row_count": invalid_period})
     if not balance_checks:
@@ -183,6 +189,7 @@ def validate_statement_data(
         "checks": {
             "unknown_reporting_basis_rows": unknown_basis,
             "unknown_period_kind_rows": unknown_period,
+            "unknown_unit_rows": unknown_unit,
             "invalid_period_rows": invalid_period,
             "conflicting_duplicate_groups": duplicate_conflicts,
             "balance_equation_tested": balance_checks,
