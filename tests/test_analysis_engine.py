@@ -67,3 +67,16 @@ def test_partial_technical_history_is_not_added_to_composite_score():
     )
     assert result["scores"]["components"]["technical"]["score"] is None
     assert result["scores"]["coverage"] < 1
+
+def test_steel_uses_ev_ebitda_as_configured_primary_multiple_by_default():
+    result = analyze_company(
+        "HPG", "STEEL",
+        {"symbol":"HPG","close":27,"eps":2,"pb":1.5,"pe":13},
+        {"roe":.14,"gross_margin":.2,"roic":.12,"net_debt_ebitda":1.5,
+         "cfo_to_net_income":1.1,"profit_growth_yoy":.1,"inventory_days":70},
+        {"ev_ebitda":6.0},
+        {"technical_score":65},
+        {"ebitda_vnd":10_000_000_000_000,"net_debt_vnd":5_000_000_000_000,
+         "diluted_shares":1_000_000_000},
+    )
+    assert result["valuation_score"]["components"]["relative_multiple"]["relative"] is not None
