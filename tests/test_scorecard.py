@@ -9,7 +9,7 @@ def test_bank_score_uses_asset_quality_and_capital():
     result = score_fundamentals(metrics, "BANK")
     assert result.status == "COMPLETE"
     assert result.score > 0
-    assert "npl_quality" in result.components
+    assert "npl_ratio" in result.components
 
 
 def test_missing_metrics_reduce_coverage_without_rescaling_available_score():
