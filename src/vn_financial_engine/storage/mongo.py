@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from pymongo import MongoClient
 
 
 COLLECTIONS = (
@@ -17,6 +16,10 @@ def connect_database():
     if not uri:
         raise RuntimeError("Thiếu MONGO_URI")
     database_name = os.getenv("MONGO_DB_NAME", "vn_financial_engine").strip()
+    try:
+        from pymongo import MongoClient
+    except ImportError as exc:
+        raise RuntimeError("Cần cài extra storage: pip install .[storage]") from exc
     client = MongoClient(
         uri, serverSelectionTimeoutMS=15000, connectTimeoutMS=10000,
         socketTimeoutMS=30000, appname="vn_financial_engine",
