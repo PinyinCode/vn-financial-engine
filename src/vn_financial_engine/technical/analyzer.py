@@ -393,7 +393,7 @@ class ProfessionalTechnicalAnalyzer:
         empty_result = {
             "pattern": "Chưa xác định",
             "technical_status": "Chưa đủ dữ liệu lịch sử",
-            "technical_score": 0,
+            "technical_score": None,
             "technical_score_max": 100,
             "technical_score_breakdown": {
                 "trend": {"score": 0, "max": 30, "reasons": ["Chưa đủ dữ liệu"]},
