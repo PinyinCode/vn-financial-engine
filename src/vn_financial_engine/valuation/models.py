@@ -8,6 +8,7 @@ class ValuationInput:
     price: float
     eps_ttm: float | None = None
     bvps: float | None = None
+    roe: float | None = None
     revenue_per_share: float | None = None
     ebitda: float | None = None
     diluted_shares: float | None = None
