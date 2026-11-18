@@ -34,7 +34,7 @@ def test_ttm_does_not_mix_units():
 
 
 def test_conflicting_duplicate_period_is_excluded():
-    rows = [{"id": "NPAT", "period": f"2025-Q{q}", "value": q * 10,
+    rows = [{"statement_type": "INCOME_STATEMENT", "id": "NPAT", "period": f"2025-Q{q}", "value": q * 10,
              "period_kind": "STANDALONE_QUARTER", "reporting_basis": "CONSOLIDATED",
              "unit": "VND"} for q in range(1, 5)]
     rows.append({**rows[1], "value": 999})
@@ -76,5 +76,5 @@ def test_ttm_does_not_mix_statement_types():
                      "period": f"2025-Q{quarter}", "value": quarter * 100,
                      "period_kind": "STANDALONE_QUARTER",
                      "reporting_basis": "CONSOLIDATED", "unit": "VND"})
-    result = trailing_twelve_months(rows, "NPAT", "CONSOLIDATED")
+    result = trailing_twelve_months(rows, "NPAT", "CONSOLIDATED", "INCOME_STATEMENT")
     assert result["value"] == 100
