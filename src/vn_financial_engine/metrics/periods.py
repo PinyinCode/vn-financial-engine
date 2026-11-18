@@ -107,7 +107,7 @@ def standalone_quarters(records: list[dict]) -> list[dict]:
 
 
 def trailing_twelve_months(records: list[dict], concept_id: str,
-                            reporting_basis: str) -> dict | None:
+                            reporting_basis: str, statement_type: str | None = None) -> dict | None:
     basis = str(reporting_basis or "").upper()
     if basis not in VERIFIED_REPORTING_BASES:
         return None
@@ -117,6 +117,7 @@ def trailing_twelve_months(records: list[dict], concept_id: str,
         if row.get("id") == concept_id
         and str(row.get("reporting_basis") or "").upper() == basis
         and row.get("period_kind") == "STANDALONE_QUARTER"
+        and (statement_type is None or str(row.get("statement_type") or "").upper() == statement_type.upper())
     ]
     # Different units are different financial series; never add them together.
     by_unit = defaultdict(list)
