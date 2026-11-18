@@ -67,3 +67,15 @@ def test_real_estate_nav_is_explicitly_not_implemented():
     result = value_company(data)
     assert "PB" in result.methods
     assert "NAV" in result.excluded_methods
+
+def test_dcf_sensitivity_matrix_contains_base_case():
+    data = ValuationInput(
+        price=20, fcff=100, net_debt=100, diluted_shares=10,
+        growth_rate=.05, wacc=.10, terminal_growth=.03, forecast_years=5,
+        sector="MANUFACTURING",
+    )
+    result = value_company(data)
+    matrix = result.sensitivity["FCFF_DCF"]["values"]
+    assert len(matrix) == 3
+    assert all(len(row) == 3 for row in matrix.values())
+    assert matrix["10.0000%"]["3.0000%"] == result.methods["FCFF_DCF"]
