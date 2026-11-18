@@ -56,7 +56,7 @@ def value_company(data: ValuationInput, margin_of_safety: float = 0.25) -> Valua
         value, reason = function(data)
         if value is not None and value > 0:
             methods[name] = value
-            weights[name] = 2.0 if name in {"FCFF_DCF", "RESIDUAL_INCOME"} else 1.0
+            weights[name] = 1.0
         else:
             excluded[name] = reason or "Không tính được"
 
