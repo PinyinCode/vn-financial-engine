@@ -117,6 +117,7 @@ def trailing_twelve_months(records: list[dict], concept_id: str,
         if row.get("id") == concept_id
         and str(row.get("reporting_basis") or "").upper() == basis
         and row.get("period_kind") == "STANDALONE_QUARTER"
+        and str(row.get("unit") or "").strip().upper() not in {"", "UNKNOWN", "NONE", "NULL"}
         and (statement_type is None or str(row.get("statement_type") or "").upper() == statement_type.upper())
     ]
     # Different units are different financial series; never add them together.
