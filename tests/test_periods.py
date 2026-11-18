@@ -21,3 +21,60 @@ def test_ttm_rejects_unknown_reporting_basis_even_with_standalone_quarters():
     rows = [{"id":"NPAT","period":f"2025-Q{i}","value":i*10,
              "period_kind":"STANDALONE_QUARTER","reporting_basis":"UNKNOWN"} for i in range(1,5)]
     assert trailing_twelve_months(rows,"NPAT","UNKNOWN") is None
+
+
+def test_ttm_does_not_mix_units():
+    rows = []
+    for quarter in range(1, 5):
+        rows.append({"id": "NPAT", "period": f"2025-Q{quarter}",
+                     "value": quarter * 10, "period_kind": "STANDALONE_QUARTER",
+                     "reporting_basis": "CONSOLIDATED",
+                     "unit": "VND" if quarter < 3 else "THOUSAND_VND"})
+    assert trailing_twelve_months(rows, "NPAT", "CONSOLIDATED") is None
+
+
+def test_conflicting_duplicate_period_is_excluded():
+    rows = [{"id": "NPAT", "period": f"2025-Q{q}", "value": q * 10,
+             "period_kind": "STANDALONE_QUARTER", "reporting_basis": "CONSOLIDATED",
+             "unit": "VND"} for q in range(1, 5)]
+    rows.append({**rows[1], "value": 999})
+    assert trailing_twelve_months(rows, "NPAT", "CONSOLIDATED") is None
+
+
+def test_identical_duplicate_period_is_deduplicated():
+    rows = [{"id": "NPAT", "period": f"2025-Q{q}", "value": q * 10,
+             "period_kind": "STANDALONE_QUARTER", "reporting_basis": "CONSOLIDATED",
+             "unit": "VND"} for q in range(1, 5)]
+    rows.append(dict(rows[0]))
+    result = trailing_twelve_months(rows, "NPAT", "CONSOLIDATED")
+    assert result["value"] == 100
+
+
+def test_non_finite_and_invalid_period_rows_are_ignored():
+    rows = [{"id": "NPAT", "period": f"2025-Q{q}", "value": q * 10,
+             "period_kind": "STANDALONE_QUARTER", "reporting_basis": "CONSOLIDATED",
+             "unit": "VND"} for q in range(1, 4)]
+    rows.extend([
+        {"id": "NPAT", "period": "2025-Q4", "value": float("nan"),
+         "period_kind": "STANDALONE_QUARTER", "reporting_basis": "CONSOLIDATED",
+         "unit": "VND"},
+        {"id": "NPAT", "period": "2025-Q5", "value": 40,
+         "period_kind": "STANDALONE_QUARTER", "reporting_basis": "CONSOLIDATED",
+         "unit": "VND"},
+    ])
+    assert trailing_twelve_months(rows, "NPAT", "CONSOLIDATED") is None
+
+
+def test_ttm_does_not_mix_statement_types():
+    rows = []
+    for quarter in range(1, 5):
+        rows.append({"statement_type": "INCOME_STATEMENT", "id": "NPAT",
+                     "period": f"2025-Q{quarter}", "value": quarter * 10,
+                     "period_kind": "STANDALONE_QUARTER",
+                     "reporting_basis": "CONSOLIDATED", "unit": "VND"})
+        rows.append({"statement_type": "CASH_FLOW", "id": "NPAT",
+                     "period": f"2025-Q{quarter}", "value": quarter * 100,
+                     "period_kind": "STANDALONE_QUARTER",
+                     "reporting_basis": "CONSOLIDATED", "unit": "VND"})
+    result = trailing_twelve_months(rows, "NPAT", "CONSOLIDATED")
+    assert result["value"] == 100
