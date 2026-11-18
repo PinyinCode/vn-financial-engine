@@ -64,6 +64,8 @@ def analyze_company(symbol: str, sector: str, legacy_stock: dict,
     peer_multiple = peer_value(primary)
     valuation_score = score_valuation(current_multiple, peer_multiple)
     technical_score = technical.get("technical_score")
+    if technical.get("technical_coverage", 1) < 1:
+        technical_score = None
     total = combine_score(fund, valuation_score, technical_score)
 
     price = legacy.get("price_thousand_vnd")
