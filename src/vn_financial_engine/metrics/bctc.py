@@ -37,6 +37,15 @@ def extract_bctc_metrics(records: list[dict], reporting_basis: str,
     concepts = {**DEFAULT_CONCEPTS, **(concept_map or {})}
     result = {"reporting_basis": reporting_basis, "metrics": {},
               "metric_status": {}, "periods": {}}
+    if str(reporting_basis or "").upper() not in {"CONSOLIDATED", "PARENT_ONLY"}:
+        result["status"] = "UNVERIFIED_REPORTING_BASIS"
+        for key in ("revenue_ttm", "cogs_ttm", "net_income_ttm", "cfo_ttm",
+                    "gross_margin", "total_assets", "total_equity",
+                    "total_liabilities", "equity_to_assets", "debt_to_equity"):
+            result["metrics"][key] = None
+            result["metric_status"][key] = "UNVERIFIED_REPORTING_BASIS"
+        return result
+    result["status"] = "OK"
     flow_keys = ("revenue", "cogs", "net_income", "cfo")
     ttm = {}
     for key in flow_keys:
