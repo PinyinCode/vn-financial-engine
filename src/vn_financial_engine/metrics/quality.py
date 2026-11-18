@@ -50,7 +50,7 @@ def piotroski_f_score(current: Mapping[str, float | None],
         cfo > current["net_income"] if cfo is not None and current.get("net_income") is not None else None)
 
     for key, label, lower_is_better in (
-        ("long_term_debt", "lower_leverage", True),
+        ("leverage_ratio", "lower_leverage", True),
         ("current_ratio", "improving_liquidity", False),
         ("shares", "no_dilution", True),
         ("gross_margin", "improving_gross_margin", False),
@@ -58,6 +58,9 @@ def piotroski_f_score(current: Mapping[str, float | None],
     ):
         cur = current.get(key)
         old = prior.get(key)
+        if key == "leverage_ratio":
+            cur = ratio(current.get("long_term_debt"), current.get("total_assets"))
+            old = ratio(prior.get("long_term_debt"), prior.get("total_assets"))
         if key == "current_ratio":
             cur = ratio(current.get("current_assets"), current.get("current_liabilities"))
             old = ratio(prior.get("current_assets"), prior.get("current_liabilities"))
