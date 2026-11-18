@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from .models import ValuationInput
 
 
@@ -53,3 +55,31 @@ def residual_income_bank_per_share(data: ValuationInput) -> tuple[float | None, 
     if ke <= g or ke <= 0:
         return None, "Cost of equity phải lớn hơn tăng trưởng dài hạn"
     return bvps + ((roe - ke) * bvps / (ke - g)), None
+
+
+def fcff_dcf_sensitivity(data: ValuationInput) -> dict:
+    """3×3 per-share DCF sensitivity for WACC and terminal growth."""
+    if data.wacc is None or data.terminal_growth is None:
+        return {"status": "NOT_AVAILABLE", "reason": "Thiếu WACC hoặc terminal growth"}
+    wacc_values = [data.wacc - .01, data.wacc, data.wacc + .01]
+    growth_values = [
+        data.terminal_growth - .005,
+        data.terminal_growth,
+        data.terminal_growth + .005,
+    ]
+    matrix = {}
+    for wacc in wacc_values:
+        row = {}
+        for growth in growth_values:
+            value, _ = fcff_dcf_per_share(
+                replace(data, wacc=wacc, terminal_growth=growth)
+            )
+            row[f"{growth:.4%}"] = round(value, 4) if value is not None else None
+        matrix[f"{wacc:.4%}"] = row
+    return {
+        "status": "CALCULATED",
+        "row_axis": "WACC",
+        "column_axis": "TERMINAL_GROWTH",
+        "values": matrix,
+        "note": "Độ nhạy ±1.0 điểm % WACC và ±0.5 điểm % tăng trưởng dài hạn",
+    }
