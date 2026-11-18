@@ -50,7 +50,8 @@ def extract_bctc_metrics(records: list[dict], reporting_basis: str,
     ttm = {}
     for key in flow_keys:
         concept_id = concepts.get(key)
-        value = trailing_twelve_months(records, concept_id, reporting_basis) if concept_id else None
+        statement_type = "CASH_FLOW" if key == "cfo" else "INCOME_STATEMENT"
+        value = trailing_twelve_months(records, concept_id, reporting_basis, statement_type) if concept_id else None
         if value:
             ttm[key] = value["value"]
             result["metric_status"][f"{key}_ttm"] = "CALCULATED"
