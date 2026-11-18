@@ -19,6 +19,14 @@ config/             Sector valuation profiles
 tests/              Unit and regression tests
 ```
 
+## Cài đặt
+
+```bash
+pip install -e ".[dev,market-data,storage]"
+```
+
+Nếu chỉ chạy kiểm thử lõi, dùng `pip install -e ".[dev]"`; SSI/Vnstock và MongoDB là phần phụ thuộc tùy chọn.
+
 ## Tính toàn vẹn dữ liệu
 - Lưu nguồn, thời điểm tải, kỳ báo cáo, mã chỉ tiêu nguồn và cơ sở hợp nhất.
 - Không cộng TTM nếu thiếu bốn quý liên tiếp độc lập.
