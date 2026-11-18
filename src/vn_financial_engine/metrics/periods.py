@@ -15,7 +15,7 @@ VERIFIED_PERIOD_KINDS = {"STANDALONE_QUARTER", "YTD", "ANNUAL"}
 
 
 def quarter_index(period: str) -> int:
-    match = re.fullmatch(r"(\\d{4})-Q([1-4])", str(period or ""))
+    match = re.fullmatch(r"(\d{4})-Q([1-4])", str(period or ""))
     if not match:
         raise ValueError(f"Kỳ báo cáo không hợp lệ: {period!r}")
     return int(match.group(1)) * 4 + int(match.group(2)) - 1
