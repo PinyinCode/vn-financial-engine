@@ -36,3 +36,34 @@ def test_fcff_dcf_bridges_enterprise_value_to_equity_per_share():
     value, reason = fcff_dcf_per_share(data)
     assert reason is None
     assert value is not None and value > 0
+
+def test_bank_valuation_excludes_industrial_methods_even_if_inputs_exist():
+    data = ValuationInput(
+        price=20, eps_ttm=2, bvps=18, ebitda=100, net_debt=20,
+        diluted_shares=10, peer_pe=10, peer_pb=1.2, peer_ev_ebitda=5,
+        is_bank=True,
+    )
+    result = value_company(data)
+    assert "PE" in result.methods and "PB" in result.methods
+    assert "EV_EBITDA" not in result.methods
+    assert "FCFF_DCF" not in result.methods
+    assert "GRAHAM" not in result.methods
+
+
+def test_technology_valuation_excludes_pb_and_graham():
+    data = ValuationInput(
+        price=30, eps_ttm=3, bvps=20, revenue_per_share=15,
+        peer_pe=15, peer_pb=2, peer_ps=3, sector="TECHNOLOGY",
+    )
+    result = value_company(data)
+    assert "PE" in result.methods
+    assert "PS" in result.methods
+    assert "PB" not in result.methods
+    assert "GRAHAM" not in result.methods
+
+
+def test_real_estate_nav_is_explicitly_not_implemented():
+    data = ValuationInput(price=20, bvps=18, peer_pb=1.1, sector="REAL_ESTATE")
+    result = value_company(data)
+    assert "PB" in result.methods
+    assert "NAV" in result.excluded_methods
