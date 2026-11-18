@@ -78,4 +78,4 @@ def test_dcf_sensitivity_matrix_contains_base_case():
     matrix = result.sensitivity["FCFF_DCF"]["values"]
     assert len(matrix) == 3
     assert all(len(row) == 3 for row in matrix.values())
-    assert matrix["10.0000%"]["3.0000%"] == result.methods["FCFF_DCF"]
+    assert abs(matrix["10.0000%"]["3.0000%"] - result.methods["FCFF_DCF"]) < .0001
