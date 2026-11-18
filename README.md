@@ -10,10 +10,10 @@ Ngân hàng, chứng khoán, thép, công nghệ, dầu khí, phân bón, sản 
 src/vn_financial_engine/
   sources/          Vietcap BCTC, SSI/Vnstock price
   normalization/    Unit bridge and period-safe normalization
-  metrics/          DuPont, Piotroski, ROIC, WACC, FCFF, operating ratios
+  metrics/          DuPont, Piotroski, Altman Z, ROIC, WACC, FCFF, operating ratios
   technical/        Ported legacy technical analyzer
   scoring/          Sector-specific scorecards
-  valuation/        Peer multiples, DCF, DDM, residual income
+  valuation/        Peer medians/IQR, DCF sensitivity, DDM, residual income
   ai/               Evidence-constrained analysis prompt
 config/             Sector valuation profiles
 tests/              Unit and regression tests
