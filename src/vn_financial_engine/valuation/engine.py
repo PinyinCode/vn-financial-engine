@@ -7,6 +7,18 @@ from .models import ValuationInput, ValuationResult
 from .multiples import calculate_multiples
 
 
+def _weighted_quantile(items: list[tuple[float, float]], quantile: float) -> float:
+    ordered = sorted(items)
+    total = sum(weight for _, weight in ordered)
+    threshold = total * quantile
+    cumulative = 0.0
+    for value, weight in ordered:
+        cumulative += weight
+        if cumulative >= threshold:
+            return value
+    return ordered[-1][0]
+
+
 def value_company(data: ValuationInput, margin_of_safety: float = 0.25) -> ValuationResult:
     if not 0 <= margin_of_safety < 0.8:
         raise ValueError("margin_of_safety must be in [0, 0.8)")
@@ -27,26 +39,21 @@ def value_company(data: ValuationInput, margin_of_safety: float = 0.25) -> Valua
     if not methods:
         return ValuationResult(excluded_methods=excluded, status="INSUFFICIENT_DATA")
 
-    # Weighted median limits the influence of one extreme method.
-    ordered = sorted((v, weights[k]) for k, v in methods.items())
-    half = sum(w for _, w in ordered) / 2
-    cumulative = 0.0
-    fair = ordered[-1][0]
-    for value, weight in ordered:
-        cumulative += weight
-        if cumulative >= half:
-            fair = value
-            break
-
-    low = fair * (1 - margin_of_safety)
-    high = fair * (1 + margin_of_safety * 0.5)
-    mos = (low - data.price) / low if low > 0 and data.price > 0 else None
+    weighted = [(value, weights[name]) for name, value in methods.items()]
+    fair = _weighted_quantile(weighted, 0.50)
+    low = _weighted_quantile(weighted, 0.25)
+    high = _weighted_quantile(weighted, 0.75)
+    buy_below = fair * (1 - margin_of_safety)
+    mos = (fair - data.price) / fair if fair > 0 and data.price > 0 else None
     upside = fair / data.price - 1 if data.price > 0 else None
     return ValuationResult(
         methods=methods, method_weights=weights, fair_value=round(fair, 4),
         fair_value_low=round(low, 4), fair_value_high=round(high, 4),
-        margin_of_safety=mos, upside_to_fair_value=upside,
+        buy_below=round(buy_below, 4), margin_of_safety=mos,
+        upside_to_fair_value=upside,
         status="ESTIMATE" if len(methods) >= 2 else "SINGLE_METHOD",
         excluded_methods=excluded,
-        assumptions={"margin_of_safety": margin_of_safety, "aggregation": "weighted_median"},
+        assumptions={"margin_of_safety": margin_of_safety,
+                     "aggregation": "weighted_median",
+                     "range": "weighted_25th_to_75th_percentile"},
     )
