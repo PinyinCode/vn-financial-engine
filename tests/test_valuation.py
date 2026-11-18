@@ -13,7 +13,8 @@ def test_graham_and_peer_valuation_are_available():
 
 
 def test_dcf_rejects_invalid_wacc_terminal_growth():
-    data = ValuationInput(price=30, free_cash_flow_per_share=2, growth_rate=.08,
+    data = ValuationInput(price=30, fcff=2_000_000, net_debt=1_000_000,
+                          diluted_shares=100_000, growth_rate=.08,
                           wacc=.07, terminal_growth=.08)
     value, reason = fcff_dcf_per_share(data)
     assert value is None
