@@ -150,11 +150,14 @@ def _fetch_bctc_ssi(symbol: str):
                     "INCOME_STATEMENT", "BALANCE_SHEET", "CASH_FLOW"
                 ):
                     metadata[section] = {
-                        str(item.get("field")): (
-                            item.get("titleVi")
-                            or item.get("titleEn")
-                            or item.get("field")
-                        )
+                        str(item.get("field")): {
+                            **item,
+                            "resolved_title": (
+                                item.get("titleVi")
+                                or item.get("titleEn")
+                                or item.get("field")
+                            ),
+                        }
                         for item in (meta.get(section) or [])
                         if isinstance(item, dict) and item.get("field")
                     }
@@ -197,7 +200,7 @@ def _fetch_bctc_ssi(symbol: str):
                     rows = []
 
                 records = []
-                titles = metadata.get(section, {})
+                field_metadata = metadata.get(section, {})
 
                 for row in rows:
                     if not isinstance(row, dict):
@@ -221,7 +224,8 @@ def _fetch_bctc_ssi(symbol: str):
                         if not np.isfinite(value):
                             continue
 
-                        title = titles.get(str(field_code), str(field_code))
+                        meta_field = field_metadata.get(str(field_code), {})
+                        title = meta_field.get("resolved_title", str(field_code))
                         item_id = canonical_id(report_name, field_code, title)
                         if not field_code:
                             continue
@@ -248,7 +252,16 @@ def _fetch_bctc_ssi(symbol: str):
                             "value": value,
                             "raw_value": raw_value,
                             "unit": "UNKNOWN",
-                            "raw_unit": (row.get("unit") or row.get("unitName") or row.get("unit_name") or row.get("valueUnit")),
+                            "raw_unit": (
+                                row.get("unit") or row.get("unitName")
+                                or row.get("unit_name") or row.get("valueUnit")
+                                or meta_field.get("unit") or meta_field.get("unitName")
+                                or meta_field.get("unit_name") or meta_field.get("valueUnit")
+                            ),
+                            # Preserve the provider's full metric definition for
+                            # later audited unit/scale normalization. Do not infer
+                            # a normalized unit from undocumented metadata fields.
+                            "source_field_metadata": meta_field,
                             "source_field": str(field_code),
                             "period_kind": "UNKNOWN",
                             "reporting_basis": "UNKNOWN",
