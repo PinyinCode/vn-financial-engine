@@ -6,23 +6,31 @@ from .models import ValuationInput
 
 
 def fcff_dcf_per_share(data: ValuationInput) -> tuple[float | None, str | None]:
-    """Simplified per-share FCFF DCF; requires normalized FCF/share and explicit WACC."""
-    fcf = data.free_cash_flow_per_share
-    g = data.growth_rate
-    wacc = data.wacc
-    tg = data.terminal_growth
+    """Enterprise FCFF DCF, bridged to equity value per diluted share.
+
+    FCFF is discounted at WACC to obtain enterprise value. Net debt is then
+    deducted and the result divided by diluted shares. All monetary inputs
+    must use the same currency unit.
+    """
+    fcff, g, wacc, tg = data.fcff, data.growth_rate, data.wacc, data.terminal_growth
     years = data.forecast_years
-    if fcf is None or fcf <= 0:
-        return None, "FCF trên cổ phiếu thiếu hoặc không dương"
+    if fcff is None or fcff <= 0:
+        return None, "FCFF doanh nghiệp thiếu hoặc không dương"
+    if data.net_debt is None or data.diluted_shares is None or data.diluted_shares <= 0:
+        return None, "Thiếu nợ ròng hoặc số cổ phiếu pha loãng"
     if g is None or wacc is None or tg is None:
         return None, "Thiếu giả định tăng trưởng, WACC hoặc tăng trưởng dài hạn"
-    if years < 1 or wacc <= tg or tg < -0.02 or tg >= 0.08 or g <= -0.5 or g >= 0.5:
+    if years < 1 or wacc <= tg or wacc <= -1 or tg < -0.02 or tg >= 0.08 or g <= -0.5 or g >= 0.5:
         return None, "Giả định DCF không hợp lệ (cần WACC > terminal growth)"
-    projected = [fcf * (1 + g) ** year for year in range(1, years + 1)]
+    projected = [fcff * (1 + g) ** year for year in range(1, years + 1)]
     pv_explicit = sum(value / (1 + wacc) ** year for year, value in enumerate(projected, 1))
     terminal = projected[-1] * (1 + tg) / (wacc - tg)
     pv_terminal = terminal / (1 + wacc) ** years
-    return pv_explicit + pv_terminal, None
+    equity_value = pv_explicit + pv_terminal - data.net_debt
+    per_share = equity_value / data.diluted_shares
+    if per_share <= 0:
+        return None, "Giá trị vốn chủ sau khi trừ nợ ròng không dương"
+    return per_share, None
 
 
 def gordon_ddm_per_share(data: ValuationInput) -> tuple[float | None, str | None]:
@@ -36,10 +44,10 @@ def gordon_ddm_per_share(data: ValuationInput) -> tuple[float | None, str | None
 
 
 def residual_income_bank_per_share(data: ValuationInput) -> tuple[float | None, str | None]:
-    """Single-stage residual-income model for banks: BVPS + (ROE-ke)*BVPS/(ke-g)."""
+    """Single-stage residual-income model: BVPS + (ROE-ke)*BVPS/(ke-g)."""
     bvps, roe, ke, g = data.bvps, data.growth_rate, data.cost_of_equity, data.terminal_growth
     if not data.is_bank:
-        return None, "Residual income cấu hình trong engine này chỉ bật cho ngân hàng"
+        return None, "Residual income chỉ bật cho ngân hàng trong cấu hình hiện tại"
     if bvps is None or bvps <= 0 or roe is None or ke is None or g is None:
         return None, "Thiếu BVPS, ROE, cost of equity hoặc tăng trưởng dài hạn"
     if ke <= g or ke <= 0:
