@@ -27,3 +27,12 @@ def test_bank_uses_residual_income_not_graham():
     result = value_company(data)
     assert "RESIDUAL_INCOME" in result.methods
     assert "GRAHAM" not in result.methods
+
+from vn_financial_engine.valuation.income_approach import fcff_dcf_per_share
+
+def test_fcff_dcf_bridges_enterprise_value_to_equity_per_share():
+    data = ValuationInput(price=20, fcff=100, net_debt=100, diluted_shares=10,
+                          growth_rate=.05, wacc=.10, terminal_growth=.03, forecast_years=5)
+    value, reason = fcff_dcf_per_share(data)
+    assert reason is None
+    assert value is not None and value > 0
