@@ -243,6 +243,8 @@ def _fetch_bctc_ssi(symbol: str):
                             "symbol": symbol,
                             "statement_type": report_name.upper(),
                             "source_hash": source_hash,
+                            "source_provider": "VIETCAP",
+                            "source_url": f"{base_url}/v1/company/{symbol}/financial-statement?section={section}",
                             "id": item_id,
                             "name": str(title),
                             "period": period,
