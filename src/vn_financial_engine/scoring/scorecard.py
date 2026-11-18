@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+SCORING_FORMULA_VERSION = "sector-score-v2.1-2026-11-18"
+
 
 @dataclass(frozen=True)
 class ScoreResult:
@@ -16,6 +18,7 @@ class ScoreResult:
     coverage: float
     components: dict[str, dict]
     status: str
+    formula_version: str = SCORING_FORMULA_VERSION
 
 
 def _higher(value, bands):
