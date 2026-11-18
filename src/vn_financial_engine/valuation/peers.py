@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from statistics import median
+from statistics import median, quantiles
 
 
 MULTIPLE_KEYS = ("pe", "pb", "ps", "ev_ebitda")
@@ -20,8 +20,7 @@ def _valid_multiple(value) -> bool:
 def _iqr_filter(values: list[tuple[str, float]]) -> tuple[list[tuple[str, float]], list[tuple[str, float]]]:
     """Tukey 1.5×IQR fences; only used with at least five peer observations."""
     ordered = sorted(value for _, value in values)
-    q1 = ordered[len(ordered) // 4]
-    q3 = ordered[(3 * len(ordered)) // 4]
+    q1, q3, _ = quantiles(ordered, n=4, method="inclusive")
     spread = q3 - q1
     low, high = q1 - 1.5 * spread, q3 + 1.5 * spread
     kept = [(symbol, value) for symbol, value in values if low <= value <= high]
