@@ -38,8 +38,14 @@ def analyze_company(symbol: str, sector: str, legacy_stock: dict,
     def peer_value(key):
         value = peer_data.get(key)
         return value.get("median") if isinstance(value, dict) else value
-    primary = str(assumptions.get("primary_multiple", "PB" if sector.upper() in
-                    {"BANK", "SECURITIES"} else "PE")).lower()
+    primary_defaults = {
+        "BANK": "PB", "SECURITIES": "PB", "STEEL": "EV_EBITDA",
+        "FERTILIZER": "EV_EBITDA", "OIL_GAS": "EV_EBITDA",
+        "TECHNOLOGY": "PE", "MANUFACTURING": "PE", "REAL_ESTATE": "PB",
+    }
+    primary = str(assumptions.get(
+        "primary_multiple", primary_defaults.get(sector.upper(), "PE")
+    )).lower()
     current_multiple = legacy.get(primary)
     if primary == "ps":
         current_multiple = assumptions.get("current_ps")
