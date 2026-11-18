@@ -67,7 +67,7 @@ def piotroski_f_score(current: Mapping[str, float | None],
         if cur is None or old is None:
             put(label, None)
         else:
-            put(label, cur < old if lower_is_better else cur >= old)
+            put(label, cur <= old if key == "shares" else (cur < old if lower_is_better else cur >= old))
 
     known = [v for v in tests.values() if v is not None]
     score = sum(v is True for v in known)
