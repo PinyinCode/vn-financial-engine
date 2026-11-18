@@ -16,3 +16,11 @@ Nguồn tham chiếu: `PinyinCode/se-verpricedemo`.
 Adapter Vietcap hiện đánh dấu `period_kind=UNKNOWN` và `reporting_basis=UNKNOWN` vì endpoint cũ chưa xác nhận được chắc chắn số liệu quý là độc lập hay lũy kế và chưa xác định rõ hợp nhất hay công ty mẹ. Do đó bộ tính TTM không được cộng các kỳ này. Chỉ sau khi xác minh schema nguồn hoặc bổ sung bộ chọn loại báo cáo, dữ liệu mới được gắn `STANDALONE_QUARTER`/`YTD` và `CONSOLIDATED`/`PARENT_ONLY`.
 
 Đây là chốt an toàn bắt buộc: giữ nguyên cách lấy dữ liệu nhanh của mã cũ nhưng không kế thừa nhầm kỳ báo cáo hoặc nhầm cơ sở hợp nhất.
+
+
+## Bổ sung provenance và MongoDB
+
+- Mỗi dòng BCTC có `symbol`, `statement_type`, `id`, `source_field`, `source_provider`, `source_url`, `retrieved_at`, `raw_value`, `value` và `source_hash`.
+- `source_hash` được tạo từ JSON dòng nguồn để nhận biết thay đổi/restatement; cùng một dòng không đổi sẽ được upsert idempotent.
+- Unique key của BCTC phải bao gồm cả mã chỉ tiêu và source field. Index cũ thiếu hai trường này sẽ khiến các dòng trong cùng kỳ ghi đè/xung đột; engine mới có migration để thay index sai.
+- MongoDB mặc định dùng database `vn_financial_engine`; các snapshot metric/score/valuation/AI lưu kèm `formula_version`, không chia sẻ collection với app cũ.
