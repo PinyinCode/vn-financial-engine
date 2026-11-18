@@ -61,3 +61,13 @@ def test_empty_statement_is_blocked():
     result = validate_statement_data([])
     assert result["status"] == "BLOCKED"
     assert result["issues"][0]["code"] == "EMPTY_STATEMENTS"
+
+
+def test_data_quality_warns_when_source_monetary_unit_is_unknown():
+    rows = _balance_rows()
+    for row in rows:
+        row["unit"] = "UNKNOWN"
+    result = validate_statement_data(rows)
+    assert result["status"] == "WARNING"
+    assert result["checks"]["unknown_unit_rows"] == 3
+    assert any(item["code"] == "UNVERIFIED_MONETARY_UNIT" for item in result["warnings"])
