@@ -57,6 +57,7 @@ def ensure_indexes(db):
             [("symbol", 1), ("as_of", -1), ("formula_version", 1)],
             unique=True, name=f"uq_{name}_symbol_asof_version",
         )
+    db.ingestion_runs.create_index([("run_id", 1)], unique=True, name="uq_ingestion_run_id")
     db.ingestion_runs.create_index([("started_at", -1)], name="idx_ingestion_started")
     return list(COLLECTIONS)
 
