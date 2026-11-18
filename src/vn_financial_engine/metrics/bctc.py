@@ -80,6 +80,7 @@ def extract_bctc_metrics(records: list[dict], reporting_basis: str,
     result["status"] = "OK"
     flow_keys = ("revenue", "cogs", "net_income", "cfo")
     ttm = {}
+    ttm_details = {}
     for key in flow_keys:
         concept_id = concepts.get(key)
         statement_type = "CASH_FLOW" if key == "cfo" else "INCOME_STATEMENT"
@@ -88,6 +89,7 @@ def extract_bctc_metrics(records: list[dict], reporting_basis: str,
         ) if concept_id else None
         if value:
             ttm[key] = value["value"]
+            ttm_details[key] = value
             result["metric_status"][f"{key}_ttm"] = "CALCULATED"
             result["periods"][f"{key}_ttm"] = value["periods"]
         else:
@@ -100,6 +102,12 @@ def extract_bctc_metrics(records: list[dict], reporting_basis: str,
         "net_income_ttm": ttm["net_income"],
         "cfo_ttm": ttm["cfo"],
     })
+    def compatible_ttm(left: str, right: str) -> bool:
+        a, b = ttm_details.get(left), ttm_details.get(right)
+        return bool(a and b and a.get("unit") == b.get("unit")
+                    and a.get("periods") == b.get("periods")
+                    and a.get("reporting_basis") == b.get("reporting_basis"))
+
     revenue, cogs = ttm["revenue"], ttm["cogs"]
     if revenue is not None and revenue > 0 and cogs is not None:
         result["metrics"]["gross_margin"] = (revenue - abs(cogs)) / revenue
@@ -107,6 +115,21 @@ def extract_bctc_metrics(records: list[dict], reporting_basis: str,
     else:
         result["metrics"]["gross_margin"] = None
         result["metric_status"]["gross_margin"] = "MISSING_INPUT"
+
+    net_income = ttm["net_income"]
+    if compatible_ttm("net_income", "revenue") and revenue not in (None, 0):
+        result["metrics"]["net_margin"] = net_income / revenue
+        result["metric_status"]["net_margin"] = "CALCULATED"
+    else:
+        result["metrics"]["net_margin"] = None
+        result["metric_status"]["net_margin"] = "MISSING_OR_INCOMPATIBLE_TTM"
+
+    if compatible_ttm("cfo", "net_income") and net_income not in (None, 0):
+        result["metrics"]["cfo_to_net_income"] = ttm["cfo"] / net_income
+        result["metric_status"]["cfo_to_net_income"] = "CALCULATED"
+    else:
+        result["metrics"]["cfo_to_net_income"] = None
+        result["metric_status"]["cfo_to_net_income"] = "MISSING_OR_INCOMPATIBLE_TTM"
 
     balance = {}
     for key in ("total_assets", "total_equity", "total_liabilities"):
