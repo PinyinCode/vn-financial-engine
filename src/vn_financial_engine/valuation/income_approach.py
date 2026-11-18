@@ -45,7 +45,7 @@ def gordon_ddm_per_share(data: ValuationInput) -> tuple[float | None, str | None
 
 def residual_income_bank_per_share(data: ValuationInput) -> tuple[float | None, str | None]:
     """Single-stage residual-income model: BVPS + (ROE-ke)*BVPS/(ke-g)."""
-    bvps, roe, ke, g = data.bvps, data.growth_rate, data.cost_of_equity, data.terminal_growth
+    bvps, roe, ke, g = data.bvps, data.roe, data.cost_of_equity, data.terminal_growth
     if not data.is_bank:
         return None, "Residual income chỉ bật cho ngân hàng trong cấu hình hiện tại"
     if bvps is None or bvps <= 0 or roe is None or ke is None or g is None:
