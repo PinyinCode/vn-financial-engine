@@ -1,0 +1,35 @@
+sectors:
+  BANK:
+    valuation_methods: [PB, PE, RESIDUAL_INCOME, DDM]
+    primary_multiple: PB
+    required_metrics: [ROE, NIM, NPL_RATIO, LOAN_LOSS_COVERAGE, CAR, CIR]
+    excluded_methods: [FCFF_DCF, EV_EBITDA, GRAHAM]
+  SECURITIES:
+    valuation_methods: [PB, PE, DDM]
+    primary_multiple: PB
+    required_metrics: [ROE, CAPITAL_TO_ASSETS, MARGIN_LENDING_TO_EQUITY, OPERATING_MARGIN]
+    excluded_methods: [FCFF_DCF, EV_EBITDA, GRAHAM]
+  STEEL:
+    valuation_methods: [PE, EV_EBITDA, PB, FCFF_DCF]
+    primary_multiple: EV_EBITDA
+    required_metrics: [GROSS_MARGIN, INVENTORY_DAYS, NET_DEBT_EBITDA, ROIC, CFO_TO_NET_INCOME]
+  TECHNOLOGY:
+    valuation_methods: [PE, EV_EBITDA, FCFF_DCF, PS]
+    primary_multiple: PE
+    required_metrics: [REVENUE_GROWTH, GROSS_MARGIN, ROIC, FCF_MARGIN]
+  OIL_GAS:
+    valuation_methods: [EV_EBITDA, PE, PB, FCFF_DCF]
+    primary_multiple: EV_EBITDA
+    required_metrics: [NET_DEBT_EBITDA, INTEREST_COVERAGE, ROIC, CAPEX_TO_CFO]
+  FERTILIZER:
+    valuation_methods: [EV_EBITDA, PE, PB, FCFF_DCF]
+    primary_multiple: EV_EBITDA
+    required_metrics: [GROSS_MARGIN, INVENTORY_DAYS, NET_DEBT_EBITDA, CFO_TO_NET_INCOME]
+  MANUFACTURING:
+    valuation_methods: [PE, EV_EBITDA, PB, FCFF_DCF]
+    primary_multiple: PE
+    required_metrics: [ROE, ROIC, INTEREST_COVERAGE, CASH_CONVERSION_CYCLE]
+  REAL_ESTATE:
+    valuation_methods: [PB, NAV, PE, DDM]
+    primary_multiple: PB
+    required_metrics: [NET_DEBT_TO_EQUITY, INVENTORY_TO_ASSETS, PRESALES_GROWTH, CFO_TO_NET_INCOME]
