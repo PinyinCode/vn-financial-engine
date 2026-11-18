@@ -31,6 +31,7 @@ def analyze_company(symbol: str, sector: str, legacy_stock: dict,
     metrics.setdefault("debt_to_equity", legacy.get("debt_to_equity"))
 
     fund = score_fundamentals(metrics, sector)
+    price = legacy.get("price_thousand_vnd")
     primary = str(assumptions.get("primary_multiple", "PB" if sector.upper() in
                     {"BANK", "SECURITIES"} else "PE")).lower()
     current_multiple = legacy.get(primary)
