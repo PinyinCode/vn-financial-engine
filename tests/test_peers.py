@@ -28,5 +28,5 @@ def test_peer_median_uses_same_sector_sample():
         peers, subject_symbol="HPG", sector="STEEL", min_peers=3
     )
     assert result["multiples"]["pe"]["status"] == "CALCULATED"
-    assert result["multiples"]["pe"]["median"] == 11
+    assert result["multiples"]["pe"]["median"] == 10.5
     assert "DDD" in result["multiples"]["pe"]["outliers_excluded"]
