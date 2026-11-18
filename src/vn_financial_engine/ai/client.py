@@ -38,6 +38,8 @@ def run_analysis(prompt: str, timeout: int = 90) -> dict:
     try:
         content = payload["choices"][0]["message"]["content"]
         parsed = json.loads(content)
+        if not isinstance(parsed, dict):
+            raise TypeError("AI response must be a JSON object")
     except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
         raise AIAnalysisError("AI trả về nội dung không phải JSON hợp lệ") from exc
     return {
