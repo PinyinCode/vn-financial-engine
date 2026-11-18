@@ -42,6 +42,9 @@ def common_operating_metrics(data: dict, days: int = 365) -> dict:
         "cfo_to_net_income": ratio(cfo, net_income),
         "free_cash_flow": fcf,
         "fcf_margin": ratio(fcf, revenue),
+        "roic_wacc_spread": (data.get("roic") - data.get("wacc")
+                             if data.get("roic") is not None and data.get("wacc") is not None
+                             else None),
         "debt_to_equity": ratio(data.get("total_liabilities"), data.get("total_equity")),
         "interest_coverage": interest_coverage,
         "inventory_days": None if inventory_days is None else inventory_days * days,
