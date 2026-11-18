@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .income_approach import (
-    fcff_dcf_per_share, gordon_ddm_per_share, residual_income_bank_per_share,
+    fcff_dcf_per_share, fcff_dcf_sensitivity, gordon_ddm_per_share, residual_income_bank_per_share,
 )
 from .models import ValuationInput, ValuationResult
 from .multiples import calculate_multiples
@@ -88,6 +88,8 @@ def value_company(data: ValuationInput, margin_of_safety: float = 0.25) -> Valua
         upside_to_fair_value=upside,
         status="ESTIMATE" if len(methods) >= 2 else "SINGLE_METHOD",
         excluded_methods=excluded,
+        sensitivity=({"FCFF_DCF": fcff_dcf_sensitivity(data)}
+                     if "FCFF_DCF" in methods else {}),
         assumptions={
             "margin_of_safety": margin_of_safety,
             "aggregation": "weighted_median",
