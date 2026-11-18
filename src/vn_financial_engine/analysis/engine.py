@@ -34,6 +34,26 @@ def analyze_company(symbol: str, sector: str, legacy_stock: dict,
     primary = str(assumptions.get("primary_multiple", "PB" if sector.upper() in
                     {"BANK", "SECURITIES"} else "PE")).lower()
     current_multiple = legacy.get(primary)
+    if primary == "ps":
+        current_multiple = assumptions.get("current_ps")
+        if current_multiple is None:
+            revenue_per_share = assumptions.get("revenue_per_share_vnd")
+            current_multiple = (
+                price * 1000 / revenue_per_share
+                if price is not None and revenue_per_share not in (None, 0)
+                else None
+            )
+    elif primary == "ev_ebitda":
+        current_multiple = assumptions.get("current_ev_ebitda")
+        ebitda = assumptions.get("ebitda_vnd")
+        net_debt = assumptions.get("net_debt_vnd")
+        shares = assumptions.get("diluted_shares")
+        if (current_multiple is None and price is not None and ebitda not in (None, 0)
+                and net_debt is not None and shares is not None and shares > 0):
+            market_cap = price * 1000 * shares
+            current_multiple = (market_cap + net_debt) / ebitda
+    else:
+        current_multiple = assumptions.get("current_multiple", current_multiple)
     peer_multiple = peer_multiples.get(primary)
     valuation_score = score_valuation(current_multiple, peer_multiple)
     technical_score = technical.get("technical_score")
