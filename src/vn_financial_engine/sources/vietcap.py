@@ -298,3 +298,8 @@ def _fetch_bctc_ssi(symbol: str):
         session.close()
 
 
+
+
+def fetch_bctc_vietcap(symbol: str):
+    """Public adapter entry point; legacy name retained for compatibility."""
+    return _fetch_bctc_ssi(symbol)
