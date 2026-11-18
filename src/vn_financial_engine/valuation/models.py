@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass, field
 
+VALUATION_FORMULA_VERSION = "sector-valuation-v2.1-2026-11-18"
+
 
 @dataclass(frozen=True)
 class ValuationInput:
@@ -42,3 +44,4 @@ class ValuationResult:
     status: str = "INSUFFICIENT_DATA"
     excluded_methods: dict[str, str] = field(default_factory=dict)
     assumptions: dict[str, float | int | str] = field(default_factory=dict)
+    formula_version: str = VALUATION_FORMULA_VERSION
