@@ -8,6 +8,7 @@ import re
 import time
 import requests
 import numpy as np
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +172,7 @@ def _fetch_bctc_ssi(symbol: str):
         }
         reports = {}
         latest_period = None
+        retrieved_at = datetime.now(timezone.utc).isoformat()
         ignored_fields = {
             "organCode", "ticker", "createDate", "updateDate",
             "yearReport", "lengthReport", "publicDate", "quarter",
@@ -239,6 +241,14 @@ def _fetch_bctc_ssi(symbol: str):
                             "value": value,
                             "unit": "VND",
                             "source_field": str(field_code),
+                            "period_kind": "UNKNOWN",
+                            "reporting_basis": "UNKNOWN",
+                            "retrieved_at": retrieved_at,
+                            "raw_period_fields": {
+                                "yearReport": row.get("yearReport") or row.get("year"),
+                                "quarter": row.get("quarter") or row.get("quarterReport"),
+                                "lengthReport": row.get("lengthReport") or row.get("length_report"),
+                            },
                         })
 
                 if records:
@@ -267,6 +277,10 @@ def _fetch_bctc_ssi(symbol: str):
         if reports:
             reports["latest_period"] = latest_period or "Chưa xác định"
             reports["source"] = "VCI_DIRECT"
+            reports["source_url"] = f"{base_url}/v1/company/{symbol}/financial-statement"
+            reports["retrieved_at"] = retrieved_at
+            reports["reporting_basis"] = "UNKNOWN"
+            reports["period_kind"] = "UNKNOWN"
             logger.info(
                 "[BCTC VCI] Hoàn tất %s | kỳ mới nhất: %s",
                 symbol, reports["latest_period"]
