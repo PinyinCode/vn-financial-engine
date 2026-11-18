@@ -34,6 +34,7 @@ class ValuationResult:
     fair_value: float | None = None
     fair_value_low: float | None = None
     fair_value_high: float | None = None
+    buy_below: float | None = None
     margin_of_safety: float | None = None
     upside_to_fair_value: float | None = None
     status: str = "INSUFFICIENT_DATA"
