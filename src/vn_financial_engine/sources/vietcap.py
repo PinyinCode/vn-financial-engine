@@ -7,6 +7,7 @@ import logging
 import re
 import time
 import requests
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -221,9 +222,12 @@ def _fetch_bctc_ssi(symbol: str):
 
                         title = titles.get(str(field_code), str(field_code))
                         item_id = canonical_id(report_name, field_code, title)
-                        
-                        if not item_id or item_id not in CORE_IDS:
+                        if not field_code:
                             continue
+                        # Preserve unmapped source concepts for future sector metrics;
+                        # never silently discard a reported line item.
+                        if not item_id:
+                            item_id = f"{report_name.upper()}:{field_code}"
 
                         if item_id == "IS_COST_OF_GOODS_SOLD" and value > 0:
                             value = -value
