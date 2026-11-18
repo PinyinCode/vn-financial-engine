@@ -22,7 +22,7 @@ def test_dcf_rejects_invalid_wacc_terminal_growth():
 
 
 def test_bank_uses_residual_income_not_graham():
-    data = ValuationInput(price=20, bvps=18, growth_rate=.12, cost_of_equity=.15,
+    data = ValuationInput(price=20, bvps=18, roe=.12, cost_of_equity=.15,
                           terminal_growth=.04, is_bank=True)
     result = value_company(data)
     assert "RESIDUAL_INCOME" in result.methods
