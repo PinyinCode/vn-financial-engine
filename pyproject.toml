@@ -10,12 +10,12 @@ requires-python = ">=3.11"
 dependencies = [
   "numpy>=1.26",
   "pandas>=2.1",
-  "requests>=2.31",
-  "vnstock>=3.2"
+  "requests>=2.31"
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.5"]
+market-data = ["vnstock>=5.0.1"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
