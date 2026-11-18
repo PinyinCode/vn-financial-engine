@@ -74,13 +74,10 @@ def _fetch_bctc_ssi(symbol: str):
             row.get("quarter") or row.get("quarterReport")
             or row.get("quarter_report")
         )
-        length = row.get("lengthReport") or row.get("length_report")
         try:
             year = int(year)
             if quarter not in (None, ""):
                 quarter = int(quarter)
-            elif length not in (None, ""):
-                quarter = int(length)
             else:
                 return None
             if not 1 <= quarter <= 4:
