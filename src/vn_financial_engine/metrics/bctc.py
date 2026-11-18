@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from .periods import quarter_index, trailing_twelve_months
 
 
@@ -15,24 +17,54 @@ DEFAULT_CONCEPTS = {
     "total_liabilities": "BS_LIABILITIES",
 }
 
+_VERIFIED_UNITS = {"VND", "THOUSAND_VND", "MILLION_VND", "BILLION_VND"}
 
-def _latest_balance_value(records: list[dict], concept_id: str,
-                          reporting_basis: str) -> tuple[float | None, str | None]:
-    rows = [r for r in records if r.get("id") == concept_id
-            and r.get("reporting_basis") == reporting_basis
-            and r.get("period")]
-    if not rows:
-        return None, None
-    row = max(rows, key=lambda r: quarter_index(r["period"]))
-    return row.get("value"), row.get("period")
+
+def _latest_balance_value(
+    records: list[dict], concept_id: str, reporting_basis: str
+) -> tuple[float | None, str | None, str | None]:
+    """Return the latest unambiguous balance value with a verified unit."""
+    candidates = []
+    for row in records or []:
+        if not isinstance(row, dict):
+            continue
+        if row.get("statement_type") != "BALANCE_SHEET":
+            continue
+        if str(row.get("id") or "") != str(concept_id or ""):
+            continue
+        if str(row.get("reporting_basis") or "").upper() != str(reporting_basis).upper():
+            continue
+        unit = str(row.get("unit") or "").strip().upper()
+        if unit not in _VERIFIED_UNITS:
+            continue
+        try:
+            period_key = quarter_index(row.get("period"))
+            value = float(row.get("value"))
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if not math.isfinite(value):
+            continue
+        candidates.append((period_key, row.get("period"), unit, value))
+
+    if not candidates:
+        return None, None, None
+    latest_period_key = max(item[0] for item in candidates)
+    latest = [item for item in candidates if item[0] == latest_period_key]
+    # Multiple units or conflicting values at the latest period are ambiguous.
+    identities = {(item[2], item[3]) for item in latest}
+    if len(identities) != 1:
+        return None, None, None
+    _, period, unit, value = latest[0]
+    return value, period, unit
 
 
 def extract_bctc_metrics(records: list[dict], reporting_basis: str,
                          concept_map: dict | None = None) -> dict:
-    """Extract TTM flows and latest point-in-time balances for one basis only.
+    """Extract TTM flows and latest point-in-time balances for one basis.
 
-    Flow records must explicitly identify STANDALONE_QUARTER, YTD or ANNUAL.
-    Balance-sheet records are point-in-time and are never summed.
+    Flow records require explicit period conventions and verified units.
+    Balance-sheet values are never summed; ratios require a common period and
+    monetary unit across all participating balance-sheet concepts.
     """
     concepts = {**DEFAULT_CONCEPTS, **(concept_map or {})}
     result = {"reporting_basis": reporting_basis, "metrics": {},
@@ -51,7 +83,9 @@ def extract_bctc_metrics(records: list[dict], reporting_basis: str,
     for key in flow_keys:
         concept_id = concepts.get(key)
         statement_type = "CASH_FLOW" if key == "cfo" else "INCOME_STATEMENT"
-        value = trailing_twelve_months(records, concept_id, reporting_basis, statement_type) if concept_id else None
+        value = trailing_twelve_months(
+            records, concept_id, reporting_basis, statement_type
+        ) if concept_id else None
         if value:
             ttm[key] = value["value"]
             result["metric_status"][f"{key}_ttm"] = "CALCULATED"
@@ -74,19 +108,43 @@ def extract_bctc_metrics(records: list[dict], reporting_basis: str,
         result["metrics"]["gross_margin"] = None
         result["metric_status"]["gross_margin"] = "MISSING_INPUT"
 
+    balance = {}
     for key in ("total_assets", "total_equity", "total_liabilities"):
-        value, period = _latest_balance_value(records, concepts.get(key, ""), reporting_basis)
+        value, period, unit = _latest_balance_value(
+            records, concepts.get(key, ""), reporting_basis
+        )
+        balance[key] = {"value": value, "period": period, "unit": unit}
         result["metrics"][key] = value
-        result["metric_status"][key] = "CALCULATED" if value is not None else "MISSING_INPUT"
+        result["metric_status"][key] = (
+            "CALCULATED" if value is not None else "MISSING_OR_UNVERIFIED_UNIT"
+        )
         if period:
             result["periods"][key] = period
 
-    assets, equity = result["metrics"]["total_assets"], result["metrics"]["total_equity"]
-    liabilities = result["metrics"]["total_liabilities"]
-    result["metrics"]["equity_to_assets"] = (
-        equity / assets if equity is not None and assets not in (None, 0) else None
+    assets = balance["total_assets"]
+    equity = balance["total_equity"]
+    liabilities = balance["total_liabilities"]
+    snapshots = [
+        (item["period"], item["unit"])
+        for item in balance.values() if item["value"] is not None
+    ]
+    common_snapshot = (
+        len(snapshots) == 3 and len(set(snapshots)) == 1
     )
-    result["metrics"]["debt_to_equity"] = (
-        liabilities / equity if liabilities is not None and equity not in (None, 0) else None
-    )
+    if common_snapshot:
+        result["metrics"]["equity_to_assets"] = (
+            equity["value"] / assets["value"]
+            if assets["value"] not in (None, 0) else None
+        )
+        result["metrics"]["debt_to_equity"] = (
+            liabilities["value"] / equity["value"]
+            if equity["value"] not in (None, 0) else None
+        )
+        ratio_status = "CALCULATED"
+    else:
+        result["metrics"]["equity_to_assets"] = None
+        result["metrics"]["debt_to_equity"] = None
+        ratio_status = "INCOMPATIBLE_BALANCE_SNAPSHOT"
+    result["metric_status"]["equity_to_assets"] = ratio_status
+    result["metric_status"]["debt_to_equity"] = ratio_status
     return result
