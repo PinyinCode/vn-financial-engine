@@ -4,7 +4,7 @@ def test_bctc_ttm_requires_verified_standalone_quarters_and_basis():
     rows=[]
     for q,v in enumerate([10,12,13,15],1):
         rows.append({"statement_type":"INCOME_STATEMENT","id":"IS_NET_REVENUE","period":f"2025-Q{q}","value":v,
-                     "period_kind":"STANDALONE_QUARTER","reporting_basis":"CONSOLIDATED"})
+                     "period_kind":"STANDALONE_QUARTER","reporting_basis":"CONSOLIDATED","unit":"VND"})
         rows.append({"statement_type":"INCOME_STATEMENT","id":"IS_COST_OF_GOODS_SOLD","period":f"2025-Q{q}","value":-v/2,
                      "period_kind":"STANDALONE_QUARTER","reporting_basis":"CONSOLIDATED"})
     result=extract_bctc_metrics(rows,"CONSOLIDATED")
