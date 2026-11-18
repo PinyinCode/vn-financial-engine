@@ -58,3 +58,47 @@ def test_balance_sheet_rejects_unknown_or_mixed_units():
     assert result["metrics"]["equity_to_assets"] is None
     assert result["metrics"]["debt_to_equity"] is None
     assert result["metric_status"]["total_assets"] == "MISSING_OR_UNVERIFIED_UNIT"
+
+
+
+def test_net_margin_and_cash_conversion_require_same_ttm_periods_and_units():
+    rows = []
+    values = {
+        "IS_NET_REVENUE": [100, 110, 120, 130],
+        "IS_NET_PROFIT_AFTER_TAX": [10, 11, 12, 13],
+        "CF_NET_CASH_FLOWS_FROM_OPERATING_ACTIVITIES": [8, 9, 10, 11],
+    }
+    statements = {
+        "IS_NET_REVENUE": "INCOME_STATEMENT",
+        "IS_NET_PROFIT_AFTER_TAX": "INCOME_STATEMENT",
+        "CF_NET_CASH_FLOWS_FROM_OPERATING_ACTIVITIES": "CASH_FLOW",
+    }
+    for concept, vals in values.items():
+        for quarter, value in enumerate(vals, 1):
+            rows.append({
+                "statement_type": statements[concept], "id": concept,
+                "period": f"2025-Q{quarter}", "value": value,
+                "period_kind": "STANDALONE_QUARTER",
+                "reporting_basis": "CONSOLIDATED", "unit": "MILLION_VND",
+            })
+    result = extract_bctc_metrics(rows, "CONSOLIDATED")
+    assert result["metrics"]["net_margin"] == 0.1
+    assert result["metrics"]["cfo_to_net_income"] == 38 / 46
+
+
+def test_net_margin_rejects_different_monetary_units():
+    rows = []
+    for quarter in range(1, 5):
+        for concept, value, unit in (
+            ("IS_NET_REVENUE", 100, "MILLION_VND"),
+            ("IS_NET_PROFIT_AFTER_TAX", 10, "THOUSAND_VND"),
+        ):
+            rows.append({
+                "statement_type": "INCOME_STATEMENT", "id": concept,
+                "period": f"2025-Q{quarter}", "value": value,
+                "period_kind": "STANDALONE_QUARTER",
+                "reporting_basis": "CONSOLIDATED", "unit": unit,
+            })
+    result = extract_bctc_metrics(rows, "CONSOLIDATED")
+    assert result["metrics"]["net_margin"] is None
+    assert result["metric_status"]["net_margin"] == "MISSING_OR_INCOMPATIBLE_TTM"
