@@ -46,7 +46,7 @@ def test_identical_duplicate_period_is_deduplicated():
              "period_kind": "STANDALONE_QUARTER", "reporting_basis": "CONSOLIDATED",
              "unit": "VND"} for q in range(1, 5)]
     rows.append(dict(rows[0]))
-    result = trailing_twelve_months(rows, "NPAT", "CONSOLIDATED")
+    result = trailing_twelve_months(rows, "NPAT", "CONSOLIDATED", "INCOME_STATEMENT")
     assert result["value"] == 100
 
 
