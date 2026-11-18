@@ -50,7 +50,7 @@ def standalone_quarters(records: list[dict]) -> list[dict]:
             if kind == "YTD":
                 previous_period = f"{idx // 4}-{('Q' + str(quarter - 1))}"
                 previous = periods.get(previous_period)
-                if previous and previous.get("period_kind") == "YTD":
+                if previous and str(previous.get("period_kind", "")).upper() == "YTD":
                     output.append({**row, "value": value - previous["value"],
                                    "period_kind": "STANDALONE_QUARTER",
                                    "derived_from": [previous_period, period]})
@@ -66,6 +66,8 @@ def standalone_quarters(records: list[dict]) -> list[dict]:
 
 def trailing_twelve_months(records: list[dict], concept_id: str,
                             reporting_basis: str) -> dict | None:
+    if str(reporting_basis or "").upper() not in {"CONSOLIDATED", "PARENT_ONLY"}:
+        return None
     rows = [r for r in standalone_quarters(records)
             if r.get("id") == concept_id
             and r.get("reporting_basis") == reporting_basis
