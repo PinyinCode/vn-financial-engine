@@ -16,3 +16,8 @@ def test_ytd_is_converted_to_standalone_quarters():
     assert [r["value"] for r in quarters] == [10,15,17,18]
     ttm=trailing_twelve_months(rows,"NPAT","CONSOLIDATED")
     assert ttm["value"] == 60
+
+def test_ttm_rejects_unknown_reporting_basis_even_with_standalone_quarters():
+    rows = [{"id":"NPAT","period":f"2025-Q{i}","value":i*10,
+             "period_kind":"STANDALONE_QUARTER","reporting_basis":"UNKNOWN"} for i in range(1,5)]
+    assert trailing_twelve_months(rows,"NPAT","UNKNOWN") is None
