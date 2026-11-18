@@ -7,7 +7,12 @@ name = "vn-financial-engine"
 version = "0.1.0"
 description = "Auditable financial analysis, scoring and valuation engine for Vietnamese listed companies"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "requests>=2.31",
+  "vnstock>=3.2"
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.5"]
