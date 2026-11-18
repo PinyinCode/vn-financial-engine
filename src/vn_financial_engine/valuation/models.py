@@ -26,6 +26,7 @@ class ValuationInput:
     peer_ev_ebitda: float | None = None
     sector: str = "OTHER"
     is_bank: bool = False
+    allowed_methods: tuple[str, ...] | None = None
 
 
 @dataclass
