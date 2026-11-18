@@ -45,3 +45,4 @@ class ValuationResult:
     excluded_methods: dict[str, str] = field(default_factory=dict)
     assumptions: dict[str, float | int | str] = field(default_factory=dict)
     formula_version: str = VALUATION_FORMULA_VERSION
+    sensitivity: dict = field(default_factory=dict)
