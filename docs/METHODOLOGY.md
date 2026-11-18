@@ -46,3 +46,24 @@
 - Residual income hiện là phiên bản một giai đoạn, cần bổ sung mô hình nhiều giai đoạn khi có dự phóng ROE/payout.
 - Altman Z-Score không áp dụng máy móc cho ngân hàng và định chế tài chính.
 - Ngưỡng điểm kỹ thuật được kế thừa từ bộ phân tích cũ; sẽ được kiểm định theo từng thị trường/ngành trước production.
+
+
+## Chỉ báo rủi ro và peer group
+
+- Altman Z-score có hai biến thể được định danh rõ: mô hình gốc cho doanh nghiệp sản xuất niêm yết và Z'' cho nhóm phi sản xuất. Không áp dụng cho ngân hàng/chứng khoán; ngưỡng gốc là ngưỡng lịch sử, không phải xác suất vỡ nợ đã hiệu chỉnh cho Việt Nam.
+- Piotroski F-Score và Altman Z-score là chỉ báo sàng lọc bổ sung, không thay thế phân tích ngành hoặc chất lượng kiểm toán.
+- Peer multiples lọc đúng ngành/nhóm so sánh, loại chính doanh nghiệp đang định giá, yêu cầu tối thiểu 3 peer hợp lệ. Khi có ít nhất 5 quan sát, áp dụng hàng rào 1.5×IQR; lưu lại mã bị loại và số lượng mẫu.
+- DCF có ma trận nhạy cảm 3×3 theo WACC (±1 điểm %) và terminal growth (±0.5 điểm %). Ô không hợp lệ được để trống, không tự điều chỉnh giả định để ép ra kết quả.
+
+## Scorecard ngành và phiên bản
+
+Scorecard cơ bản dùng 50 điểm; định giá tương đối 30 điểm; kỹ thuật 20 điểm. Điểm cơ bản của từng ngành dùng các metric và trọng số khác nhau:
+- Ngân hàng: ROE, tăng trưởng lợi nhuận, NPL, bao phủ nợ xấu, CAR, CIR.
+- Chứng khoán: ROE, tăng trưởng, vốn/tài sản, dư nợ margin/vốn chủ, biên hoạt động.
+- Thép/phân bón: biên gộp, ROIC, nợ ròng/EBITDA, CFO/NI, tăng trưởng, ngày tồn kho.
+- Công nghệ: tăng trưởng doanh thu, biên gộp, ROIC, biên FCF, CFO/NI.
+- Dầu khí: ROIC, nợ ròng/EBITDA, khả năng trả lãi, CFO/NI, tăng trưởng.
+- Bất động sản: ROE, presales, CFO/NI, nợ/vốn chủ, tồn kho/tài sản.
+- Sản xuất: ROE, ROIC, CFO/NI, nợ/vốn chủ, khả năng trả lãi.
+
+Điểm số là thang đánh giá nội bộ theo ngưỡng cấu hình, không phải công thức học thuật chuẩn hóa. Khi thiếu dữ liệu, điểm không được bù bằng cách giả định số 0 hoặc nâng điểm các phần còn lại lên đủ 50; coverage phải đi kèm score. Mỗi kết quả lưu formula version để có thể tái lập lịch sử sau khi thay đổi công thức.
