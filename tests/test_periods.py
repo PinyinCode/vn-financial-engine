@@ -42,7 +42,8 @@ def test_conflicting_duplicate_period_is_excluded():
 
 
 def test_identical_duplicate_period_is_deduplicated():
-    rows = [{"id": "NPAT", "period": f"2025-Q{q}", "value": q * 10,
+    rows = [{"statement_type": "INCOME_STATEMENT", "id": "NPAT",
+             "period": f"2025-Q{q}", "value": q * 10,
              "period_kind": "STANDALONE_QUARTER", "reporting_basis": "CONSOLIDATED",
              "unit": "VND"} for q in range(1, 5)]
     rows.append(dict(rows[0]))
