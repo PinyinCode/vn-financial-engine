@@ -395,6 +395,7 @@ class ProfessionalTechnicalAnalyzer:
             "technical_status": "Chưa đủ dữ liệu lịch sử",
             "technical_score": None,
             "technical_score_max": 100,
+            "technical_coverage": min(len(self.df) / 200, 1.0),
             "technical_score_breakdown": {
                 "trend": {"score": 0, "max": 30, "reasons": ["Chưa đủ dữ liệu"]},
                 "momentum": {"score": 0, "max": 25, "reasons": ["Chưa đủ dữ liệu"]},
@@ -452,6 +453,7 @@ class ProfessionalTechnicalAnalyzer:
             "technical_status": status,
             "technical_score": total,
             "technical_score_max": 100,
+            "technical_coverage": min(len(self.df) / 200, 1.0),
             "technical_score_breakdown": {
                 "trend": {"score": trend_score, "max": 30, "reasons": trend_reasons},
                 "momentum": {"score": momentum_score, "max": 25, "reasons": momentum_reasons},
