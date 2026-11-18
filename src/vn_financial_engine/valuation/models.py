@@ -1,4 +1,4 @@
-"""Typed-by-convention valuation inputs and outputs; currency per share unless stated."""
+"""Valuation contracts. Currency units must be consistent within each method."""
 
 from dataclasses import dataclass, field
 
@@ -9,8 +9,10 @@ class ValuationInput:
     eps_ttm: float | None = None
     bvps: float | None = None
     revenue_per_share: float | None = None
-    ebitda_per_share: float | None = None
-    free_cash_flow_per_share: float | None = None
+    ebitda: float | None = None
+    diluted_shares: float | None = None
+    net_debt: float | None = None
+    fcff: float | None = None
     dividend_per_share: float | None = None
     growth_rate: float | None = None
     terminal_growth: float | None = None
@@ -21,7 +23,6 @@ class ValuationInput:
     peer_pb: float | None = None
     peer_ps: float | None = None
     peer_ev_ebitda: float | None = None
-    target_payout: float | None = None
     sector: str = "OTHER"
     is_bank: bool = False
 
