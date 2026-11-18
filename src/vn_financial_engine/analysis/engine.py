@@ -32,6 +32,12 @@ def analyze_company(symbol: str, sector: str, legacy_stock: dict,
 
     fund = score_fundamentals(metrics, sector)
     price = legacy.get("price_thousand_vnd")
+    peer_payload = peer_multiples or {}
+    peer_data = peer_payload.get("multiples", peer_payload)
+
+    def peer_value(key):
+        value = peer_data.get(key)
+        return value.get("median") if isinstance(value, dict) else value
     primary = str(assumptions.get("primary_multiple", "PB" if sector.upper() in
                     {"BANK", "SECURITIES"} else "PE")).lower()
     current_multiple = legacy.get(primary)
@@ -55,7 +61,7 @@ def analyze_company(symbol: str, sector: str, legacy_stock: dict,
             current_multiple = (market_cap + net_debt) / ebitda
     else:
         current_multiple = assumptions.get("current_multiple", current_multiple)
-    peer_multiple = peer_multiples.get(primary)
+    peer_multiple = peer_value(primary)
     valuation_score = score_valuation(current_multiple, peer_multiple)
     technical_score = technical.get("technical_score")
     total = combine_score(fund, valuation_score, technical_score)
@@ -79,10 +85,10 @@ def analyze_company(symbol: str, sector: str, legacy_stock: dict,
         cost_of_equity=assumptions.get("cost_of_equity"),
         wacc=assumptions.get("wacc"),
         forecast_years=int(assumptions.get("forecast_years", 5)),
-        peer_pe=peer_multiples.get("pe"),
-        peer_pb=peer_multiples.get("pb"),
-        peer_ps=peer_multiples.get("ps"),
-        peer_ev_ebitda=peer_multiples.get("ev_ebitda"),
+        peer_pe=peer_value("pe"),
+        peer_pb=peer_value("pb"),
+        peer_ps=peer_value("ps"),
+        peer_ev_ebitda=peer_value("ev_ebitda"),
         sector=sector,
         is_bank=sector.upper() == "BANK",
     )
@@ -96,6 +102,7 @@ def analyze_company(symbol: str, sector: str, legacy_stock: dict,
         "unit_profile": "VND_PER_SHARE; VND_TOTALS; DECIMAL_RATIOS",
         "metrics": metrics,
         "technical": technical,
+        "peer_comparison": peer_payload,
         "scores": asdict(total),
         "fundamental_score": asdict(fund),
         "valuation_score": asdict(valuation_score),
